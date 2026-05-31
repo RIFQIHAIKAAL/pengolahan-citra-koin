@@ -1,0 +1,141 @@
+# INSTALL (jalankan sekali saja)
+!pip install opencv-python scikit-image -q
+
+# IMPORT LIBRARY
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from skimage.feature import graycomatrix, graycoprops
+
+# MEMBACA GAMBAR
+img = cv2.imread('koin.jpg')   # Ganti sesuai nama file gambar
+img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+# TAMPILKAN CITRA ASLI
+plt.figure(figsize=(5,5))
+plt.imshow(img_rgb)
+plt.title("Citra Asli")
+plt.axis("off")
+plt.show()
+
+# GRAYSCALE
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+plt.figure(figsize=(5,5))
+plt.imshow(gray, cmap='gray')
+plt.title("Grayscale")
+plt.axis("off")
+plt.show()
+
+# SOBEL
+sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+sobel = cv2.magnitude(sobelx, sobely)
+
+plt.figure(figsize=(5,5))
+plt.imshow(sobel, cmap='gray')
+plt.title("Sobel")
+plt.axis("off")
+plt.show()
+
+# CANNY
+canny = cv2.Canny(gray, 100, 200)
+
+plt.figure(figsize=(5,5))
+plt.imshow(canny, cmap='gray')
+plt.title("Canny")
+plt.axis("off")
+plt.show()
+
+# MORFOLOGI
+kernel = np.ones((5,5), np.uint8)
+
+# EROSI
+erosi = cv2.erode(canny, kernel, iterations=1)
+
+plt.figure(figsize=(5,5))
+plt.imshow(erosi, cmap='gray')
+plt.title("Erosi")
+plt.axis("off")
+plt.show()
+
+# DILASI
+dilasi = cv2.dilate(canny, kernel, iterations=1)
+
+plt.figure(figsize=(5,5))
+plt.imshow(dilasi, cmap='gray')
+plt.title("Dilasi")
+plt.axis("off")
+plt.show()
+
+# OPENING
+opening = cv2.morphologyEx(canny, cv2.MORPH_OPEN, kernel)
+
+plt.figure(figsize=(5,5))
+plt.imshow(opening, cmap='gray')
+plt.title("Opening")
+plt.axis("off")
+plt.show()
+
+# CLOSING
+closing = cv2.morphologyEx(canny, cv2.MORPH_CLOSE, kernel)
+
+plt.figure(figsize=(5,5))
+plt.imshow(closing, cmap='gray')
+plt.title("Closing")
+plt.axis("off")
+plt.show()
+
+# HISTOGRAM
+hist = cv2.calcHist([gray], [0], None, [256], [0,256])
+
+plt.figure(figsize=(8,4))
+plt.plot(hist)
+plt.title("Histogram Intensitas")
+plt.show()
+
+# GLCM
+glcm = graycomatrix(
+    gray,
+    [1],
+    [0],
+    levels=256,
+    symmetric=True,
+    normed=True
+)
+
+contrast = graycoprops(glcm, 'contrast')[0,0]
+energy = graycoprops(glcm, 'energy')[0,0]
+homogeneity = graycoprops(glcm, 'homogeneity')[0,0]
+correlation = graycoprops(glcm, 'correlation')[0,0]
+
+print("===== HASIL GLCM =====")
+print("Contrast    =", contrast)
+print("Energy      =", energy)
+print("Homogeneity =", homogeneity)
+print("Correlation =", correlation)
+
+# CONTOUR
+contours, hierarchy = cv2.findContours(
+    canny,
+    cv2.RETR_EXTERNAL,
+    cv2.CHAIN_APPROX_SIMPLE
+)
+
+hasil = img_rgb.copy()
+
+cv2.drawContours(
+    hasil,
+    contours,
+    -1,
+    (255,0,0),
+    2
+)
+
+plt.figure(figsize=(5,5))
+plt.imshow(hasil)
+plt.title("Contour")
+plt.axis("off")
+plt.show()
+
+print("Jumlah Contour =", len(contours))
